@@ -57,7 +57,7 @@
       (with-current-buffer (or (url-retrieve-synchronously url nil t)
                                (error "Error retrieving documentation index."))
         (setq devdocs-subjects (mapcar (lambda (it)
-                                         (list (string-trim
+                                         (cons (string-trim
                                                 (concat
                                                  (alist-get 'name it)
                                                  " "
@@ -106,7 +106,7 @@
   (let* ((subjects (mapcar #'car (devdocs-subjects)))
          (hist 'devdoc--hist-subjects)
          (subject (completing-read "Subject: " subjects nil t nil hist)))
-    (cadr (assoc subject (devdocs-subjects)))))
+    (cdr (assoc subject (devdocs-subjects)))))
 
 (defun devdocs--best-match (string names)
   "Return the best match for STRING in NAMES, if any.
@@ -159,7 +159,7 @@ case-sensitive."
           (major-mode-string
            (replace-regexp-in-string "-mode$" "" (symbol-name major-mode)))
           (subject-dwim
-           (cadr (cl-assoc (regexp-quote major-mode-string) (devdocs-subjects)
+           (cdr (cl-rassoc (regexp-quote (concat major-mode-string "~") ) (devdocs-subjects)
                            :test #'string-match-p)))
           (subject (if current-prefix-arg
                        (devdocs-read-subject)
@@ -179,7 +179,7 @@ case-sensitive."
 (defun devdocs-setup ()
   "Generate an interactive command for each subject (`devdocs-subjects')."
   (dolist (pair (devdocs-subjects))
-    (cl-destructuring-bind (name subject) pair
+    (cl-destructuring-bind (name . subject) pair
       (let ((symbol (intern (format "devdocs-lookup-%s" subject))))
         (defalias symbol
           (lambda ()
